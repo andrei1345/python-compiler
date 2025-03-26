@@ -61,7 +61,24 @@ def compile(source, filename, mode, flags=None, dont_inherit=None):
         raise RuntimeError("not implemented yet")
 
     return make_compiler(source, filename, mode, get_default_generator()).getCode()
+def parseFile(path):
+    f = open(path, "U")
+    # XXX The parser API tolerates files without a trailing newline,
+    # but not strings without a trailing newline.  Always add an extra
+    # newline to the file contents, since we're going through the string
+    # version of the API.
+    src = f.read() + "\n"
+    f.close()
+    return parse(src)
 
+def parse(buf, mode="exec"):
+    if mode == "exec" or mode == "single":
+        return Transformer().parsesuite(buf)
+    elif mode == "eval":
+        return Transformer().parseexpr(buf)
+    else:
+        raise ValueError("compile() arg 3 must be"
+                         " 'exec' or 'eval' or 'single'")
 
 def make_compiler(source, filename, mode, generator=None):
     if mode not in ("single", "exec", "eval"):
